@@ -52,7 +52,7 @@ export default function Home() {
         console.error('No Twitter account linked');
         alert('No Twitter account linked. Please link your Twitter account first.');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error posting to Twitter:', error);
       alert('Error: ' + error.message);
     }

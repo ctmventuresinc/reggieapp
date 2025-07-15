@@ -28,14 +28,14 @@ export async function POST(request: NextRequest) {
      * ---------------------------------------------------------- */
     console.log('Getting user data for userId:', userId);
     
-    // Get user data - OAuth tokens should be included automatically if enabled in dashboard
-    const user = await privy.getUser(userId);
+    // includeTokens = true enables returning the oauth object
+    const user = await privy.getUser(userId, { include: ['linked_accounts', 'oauth_tokens'] });
     console.log('User data:', JSON.stringify(user, null, 2));
     console.log('Linked accounts:', user.linkedAccounts);
 
     const twitterAccount = user.linkedAccounts.find(
       (acc: any) => acc.type === 'twitter_oauth'
-    ) as any;
+    );
     console.log('Twitter account found:', twitterAccount);
     
     if (!twitterAccount) {
