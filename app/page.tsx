@@ -12,19 +12,20 @@ export default function Home() {
     
     try {
       const accessToken = await getAccessToken();
-      // Get Twitter OAuth token from user's linked accounts
+      // Check if user has Twitter linked
       const twitterAccount = user.linkedAccounts.find(account => account.type === 'twitter_oauth');
       
       if (twitterAccount) {
-        // Use the Twitter API v2 to post a tweet
-        const response = await fetch('https://api.twitter.com/2/tweets', {
+        // Call your API route to post to Twitter
+        const response = await fetch('/api/twitter/post', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${twitterAccount.accessToken}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            text: 'Hello from my app! 🚀'
+            text: 'Hello from my app! 🚀',
+            userId: user.id
           })
         });
         
@@ -33,6 +34,8 @@ export default function Home() {
         } else {
           console.error('Failed to post tweet:', await response.text());
         }
+      } else {
+        console.error('No Twitter account linked');
       }
     } catch (error) {
       console.error('Error posting to Twitter:', error);
