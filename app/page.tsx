@@ -1,10 +1,43 @@
 'use client';
 
 import Image from "next/image";
-import { useLogin } from '@privy-io/react-auth';
+import { useLogin, usePrivy } from '@privy-io/react-auth';
 
 export default function Home() {
   const { login } = useLogin();
+  const { user, getAccessToken } = usePrivy();
+
+  const postToTwitter = async () => {
+    if (!user) return;
+    
+    try {
+      const accessToken = await getAccessToken();
+      // Get Twitter OAuth token from user's linked accounts
+      const twitterAccount = user.linkedAccounts.find(account => account.type === 'twitter_oauth');
+      
+      if (twitterAccount) {
+        // Use the Twitter API v2 to post a tweet
+        const response = await fetch('https://api.twitter.com/2/tweets', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${twitterAccount.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: 'Hello from my app! 🚀'
+          })
+        });
+        
+        if (response.ok) {
+          console.log('Tweet posted successfully!');
+        } else {
+          console.error('Failed to post tweet:', await response.text());
+        }
+      }
+    } catch (error) {
+      console.error('Error posting to Twitter:', error);
+    }
+  };
 
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -31,12 +64,21 @@ export default function Home() {
         </ol>
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <button
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            onClick={login}
-          >
-            Login with Privy
-          </button>
+          {!user ? (
+            <button
+              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
+              onClick={login}
+            >
+              Login with Privy
+            </button>
+          ) : (
+            <button
+              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-500 text-white gap-2 hover:bg-blue-600 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
+              onClick={postToTwitter}
+            >
+              Post to Twitter
+            </button>
+          )}
           <a
             className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
