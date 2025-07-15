@@ -1,21 +1,31 @@
 'use client';
 
 import Image from "next/image";
-import { useLogin, usePrivy } from '@privy-io/react-auth';
+import { useLogin, usePrivy, useOAuthTokens } from '@privy-io/react-auth';
 
 export default function Home() {
   const { login } = useLogin();
   const { user, getAccessToken } = usePrivy();
 
   const postToTwitter = async () => {
-    if (!user) return;
+    if (!user) {
+      alert('Please log in first');
+      return;
+    }
+    
+    console.log('User:', user);
+    console.log('Linked accounts:', user.linkedAccounts);
     
     try {
       const accessToken = await getAccessToken();
+      console.log('Access token obtained');
+      
       // Check if user has Twitter linked
       const twitterAccount = user.linkedAccounts.find(account => account.type === 'twitter_oauth');
+      console.log('Twitter account found:', twitterAccount);
       
       if (twitterAccount) {
+        console.log('Posting to Twitter...');
         // Call your API route to post to Twitter
         const response = await fetch('/api/twitter/post', {
           method: 'POST',
@@ -30,15 +40,21 @@ export default function Home() {
         });
         
         if (response.ok) {
-          console.log('Tweet posted successfully!');
+          const result = await response.json();
+          console.log('Tweet posted successfully!', result);
+          alert('Tweet posted successfully!');
         } else {
-          console.error('Failed to post tweet:', await response.text());
+          const error = await response.text();
+          console.error('Failed to post tweet:', error);
+          alert('Failed to post tweet: ' + error);
         }
       } else {
         console.error('No Twitter account linked');
+        alert('No Twitter account linked. Please link your Twitter account first.');
       }
     } catch (error) {
       console.error('Error posting to Twitter:', error);
+      alert('Error: ' + error.message);
     }
   };
 
